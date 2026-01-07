@@ -1,6 +1,7 @@
 import pandas as pd
-import sqlite3
 from pandera.pandas import DataFrameSchema, Column
+from ..utils.db import get_connection, insert_dataframe
+from ..utils.errors import InsertionError, ValidationError
 
 raw_schema = DataFrameSchema({
     "Date": Column(str, nullable=False),
@@ -15,14 +16,17 @@ raw_schema = DataFrameSchema({
     "Sub_metering_3": Column(float, nullable=True, coerce=True),
 })
 
-def Extract_validate_save(data):
-    df = pd.read_csv(data, sep=";", na_values="?")
-
+def extract_validate_save(data_path: str) -> int:
+    df = pd.read_csv(data_path, sep=";", na_values="?")
     try:
         valid = raw_schema.validate(df)
-        print("Schema validated")
+        print("Extract_Process: Schema validated")
+        try:
+            with get_connection() as conn:
+                insert_dataframe(conn, valid, "household_power_raw")
+            print("Extract_Process: Dataframe inserted into table: [household_power_raw]")
+        except Exception as e:
+            raise InsertionError(f"Extract_Process: Insertion failed: {e}")
         return 1
     except Exception as e:
-        print("Schema not valid")
-        print(e)
-        return 0
+        raise ValidationError(f"Extract_Process: Schema not valid: {e}")

@@ -22,5 +22,6 @@ CREATE TABLE IF NOT EXISTS household_power_processed (
     is_missing_power INTEGER,
     hour INTEGER,
     day_of_week INTEGER,
-    is_weekend INTEGER
+    is_weekend INTEGER,
+    has_missing INTEGER
 )
