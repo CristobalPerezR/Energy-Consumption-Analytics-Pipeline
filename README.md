@@ -2,39 +2,81 @@
 
 This repository contains an ETL pipeline to process and analyze household electricity consumption data, based on the UCI dataset: [Individual household electric power consumption](https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption).
 
-The objective is to prepare clean and consistent data, ready for exploratory analysis and visualization in Power BI.
+The objective is to prepare clean and consistent data to support analytics, exploratory analysis, and baseline machine learning modeling, while enabling downstream visualization and reporting in Power BI.
+
+`(ETL → BI | ETL → ML)`
 
 ## Repository Structure
 ```
+README.md
+requirements.txt
+run_etl_pipeline.py
+run_ml_pipeline.py
+
 data/
-│
-├── raw/           # Raw data downloaded
-├── processed/     # Processed data through ETL pipeline
-└── database/      # SQLite DB
-notebooks/         # Exploration
+├── raw/                # Original dataset (txt / zip)
+├── processed/          # Output of ETL pipeline
+│   └── household_power_consumption_processed.csv
+├── database/           # SQLite database
+│   └── household_power.db
+└── ml/                 # Machine learning artifacts
+    ├── ml_ready.csv    # Feature-engineered dataset
+    ├── metrics.json    # Evaluation metrics
+    └── models/
+        ├── linear_model.joblib
+        ├── ridge_model.joblib
+        └── scaler.joblib
+
+notebooks/
+└── exploration.ipynb   # Exploratory analysis
+
 sql/
-│ ├── schema.sql   # Tables definitions
+└── schema.sql          # Database schema
+
 src/
-│ ├── dataset/     # Download function
-│ ├── db_script/   # Database initialization
-│ ├── etl/         # Extract, Transform, Load
-│ └── utils/       # Auxiliary functions (DB, errors)
+├── dataset/
+│   └── download.py     # Dataset download
+├── db_script/
+│   └── init_db.py      # Database initialization
+├── etl/
+│   ├── extract.py
+│   ├── transform.py
+│   └── load.py
+├── features/
+│   └── build_features.py   # ML feature engineering
+├── ml/
+│   └── train_baseline.py   # Linear & Ridge training
+└── utils/
+    ├── db.py
+    └── errors.py
 ```
 ## Requirements
 - Python 3.10+
 - Main libraries:
   - `pandas`
   - `pandera`
-  - `sqlite3`
+  - `numpy`
   - `requests`
+  - `scikit-learn`
+  - `joblib`
 
 Dependencies Installation
 ```bash
 pip install -r requirements.txt
 ```
 
+## Considerations
+The following files will be created during pipeline execution due to their size:
+* ETL pipeline:
+    * `data/raw/household_power_consumption.zip`
+    * `data/raw/household_power_consumption.txt`
+    * `data/processed/household_power_consumption_processed.csv`
+* ML pipeline:
+    * `data/ml/ml_ready.csv`
+
+
 ## Pipeline ETL
-This pipeline consists of three main steps
+This pipeline consists of three main steps:
 
 1. Extract
     * Read original dataset.
@@ -79,3 +121,54 @@ Columns for household_power_processed:
 | day_of_week           | Day of the week (0=Monday … 6=Sunday)            |
 | is_weekend            | Flag if the day is weekend (0=No / 1=Yes)        |
 | has_missing           | Flag if any column in the row is NaN             |
+
+## Machine Learning Pipeline
+
+After the ETL process, a baseline machine learning pipeline is executed to predict household energy consumption.
+
+### Objective
+
+Predict `global_active_power` using temporal and rolling statistical features derived from historical consumption.
+
+### Feature Engineering
+
+The ML dataset is generated from the processed ETL output and includes:
+* Cyclical time encoding:
+    + `hour_sin`, `hour_cos`.
+    + `day_of_week_sin`, `day_of_week_cos`.
+* Calendar features:
+    + `is_weekend`.
+* Rolling statistics:
+    + `global_active_power_ma_5m`.
+    + `global_active_power_ma_15m`.
+    + `global_active_power_ma_30m`.
+
+The resulting dataset is stored at: `data/ml/ml_ready.csv`
+
+### Models
+Two baseline regression models are trained:
+* Linear Regression
+* Ridge Regression
+
+Before training:
+* Data is split chronologically (70% train / 30% test)
+* Features are standardized using StandardScaler
+
+### Evaluation Metrics
+
+Models are evaluated using:
+* RMSE (Root Mean Squared Error)
+* MAE (Mean Absolute Error)
+
+Metrics are save to `data/ml/metrics.json`.
+
+Trained models and scaler are persisted using `joblib` and stored at:`data/ml/models/`
+
+### ML pipeline execution
+```bash
+python -m run_ml_pipeline.py
+```
+
+### Pipeline Flow
+
+Load processed CSV → Feature engineering → Save ml_ready.csv → Train models → Save metrics & models (JSON & joblib)

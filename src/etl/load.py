@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 from pandera.dtypes import DateTime
 from pandera.pandas import DataFrameSchema, Column
 from ..utils.db import get_connection, insert_dataframe
@@ -21,6 +22,10 @@ processed_schema = DataFrameSchema({
 })
 
 def load_processed(df:pd.DataFrame) -> int:
+    csv_dir = os.path.join("data", "processed")
+    os.makedirs(csv_dir, exist_ok=True)
+    csv_path = os.path.join(csv_dir, "household_power_consumption_processed.csv")
+
     with get_connection() as conn:
         try: 
             valid_df = processed_schema.validate(df)
@@ -29,8 +34,8 @@ def load_processed(df:pd.DataFrame) -> int:
                 insert_dataframe(conn, valid_df, "household_power_processed")
                 print("Load_Process: Dataframe inserted into table: [household_power_processed]")
 
-                valid_df.to_csv("data/processed/household_power_consumption_processed.csv", sep=";", index=False)
-                print("Load_Process: csv saved at: 'data/processed/household_power_consumption_processed.csv'")
+                valid_df.to_csv(csv_path, sep=";", index=False)
+                print(f"Load_Process: csv saved at: {csv_path}")
 
             except Exception as e:
                 raise InsertionError(f"Load_Process: Insertion failed: {e}")

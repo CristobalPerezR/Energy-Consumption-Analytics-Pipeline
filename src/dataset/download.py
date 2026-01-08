@@ -4,9 +4,12 @@ import zipfile
 from tqdm import tqdm
 
 def download_unzip() -> str:
+    raw_dir = os.path.join("data", "raw")
+    os.makedirs(raw_dir, exist_ok=True)
+    zip_path = os.path.join(raw_dir, "household_power_consumption.zip")
+    txt_filename = os.path.join(raw_dir, "household_power_consumption.txt")
+
     url = "https://archive.ics.uci.edu/static/public/235/individual+household+electric+power+consumption.zip"
-    zip_path = "data/raw/household_power_consumption.zip"
-    txt_filename = "data/raw/household_power_consumption.txt"
 
     if not os.path.exists(zip_path):
         print("Downloading dataset...")
