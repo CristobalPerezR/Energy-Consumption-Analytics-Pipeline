@@ -172,3 +172,20 @@ python -m run_ml_pipeline.py
 ### Pipeline Flow
 
 Load processed CSV → Feature engineering → Save ml_ready.csv → Train models → Save metrics & models (JSON & joblib)
+
+
+## Power BI Analytics
+
+A Power BI dashboard was built on top of the processed dataset to analyze household energy consumption patterns and data quality.
+
+### Dashboard Pages
+- **Overview**: High-level KPIs and hourly consumption patterns.
+- **Drill-down Analysis**: Detailed consumption breakdown by hour, day of week, and sub-metering.
+- **Data Quality**: Missing data distribution across days and hours.
+
+The dashboard focuses on:
+- Identifying peak consumption hours.
+- Understanding sub-metering contribution (Kitchen, Laundry, Heating/AC).
+- Evaluating data completeness and temporal missing patterns.
+
+Detailed dashboard documentation and insights are available at: [README BI](https://github.com/CristobalPerezR/Energy-Consumption-Analytics-Pipeline/powerbi/README.md)
