@@ -188,4 +188,4 @@ The dashboard focuses on:
 - Understanding sub-metering contribution (Kitchen, Laundry, Heating/AC).
 - Evaluating data completeness and temporal missing patterns.
 
-Detailed dashboard documentation and insights are available at: [README BI](https://github.com/CristobalPerezR/Energy-Consumption-Analytics-Pipeline/powerbi/README.md)
+Detailed dashboard documentation and insights are available at: [README BI](https://github.com/CristobalPerezR/Energy-Consumption-Analytics-Pipeline/blob/main/powerbi/README.md)
